@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #fff8f2;
+  --foreground: #2d1b12;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-inter), sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-dolce-primary px-6 py-3 font-medium text-white transition hover:bg-[#6f4a2f] focus:outline-none focus:ring-2 focus:ring-dolce-accent focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-dolce-primary bg-transparent px-6 py-3 font-medium text-dolce-primary transition hover:bg-dolce-secondary focus:outline-none focus:ring-2 focus:ring-dolce-accent focus:ring-offset-2;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-dolce-secondary bg-white px-4 py-3 text-dolce-text outline-none transition focus:border-dolce-accent focus:ring-2 focus:ring-dolce-accent/30;
+  }
+
+  .section-title {
+    @apply font-playfair text-3xl font-bold text-dolce-text md:text-4xl;
+  }
+}
