@@ -30,7 +30,6 @@ const emptyForm = {
   isActive: true,
   isHighlighted: false,
   buttonText: "",
-  buttonLink: "",
 };
 
 function toDatetimeLocal(iso: string) {
@@ -91,7 +90,6 @@ export default function OffersTab() {
       isActive: item.isActive,
       isHighlighted: item.isHighlighted,
       buttonText: item.buttonText || "",
-      buttonLink: item.buttonLink || "",
     });
     setMessage("");
     setShowForm(true);
@@ -118,8 +116,9 @@ export default function OffersTab() {
       endDate: new Date(form.endDate).toISOString(),
       isActive: form.isActive,
       isHighlighted: form.isHighlighted,
-      buttonText: form.buttonText.trim(),
-      buttonLink: form.buttonLink.trim(),
+      buttonText: form.buttonText.trim() || to("buttonTextDefault"),
+      // Always deep-link guests to Reservation with this offer attached
+      buttonLink: "/reservation",
     };
 
     try {
@@ -375,29 +374,41 @@ export default function OffersTab() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="admin-label">{to("buttonText")}</label>
-                  <input
-                    className="input-field"
-                    placeholder={to("buttonTextPlaceholder")}
-                    value={form.buttonText}
-                    onChange={(e) =>
-                      setForm({ ...form, buttonText: e.target.value })
-                    }
-                  />
+              <div>
+                <label className="admin-label">{to("buttonText")}</label>
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {[
+                    to("ctaBookOffer"),
+                    to("ctaReserve"),
+                    to("ctaSeeOffer"),
+                  ].map((preset) => {
+                    const active = form.buttonText === preset;
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() =>
+                          setForm({ ...form, buttonText: preset })
+                        }
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                          active
+                            ? "bg-dolce-primary text-white dark:bg-dolce-accent dark:text-dolce-text"
+                            : "border border-dolce-secondary/80 bg-white text-dolce-text hover:border-dolce-accent dark:border-white/15 dark:bg-[#2a1f18] dark:text-[#f5e6d3]"
+                        }`}
+                      >
+                        {preset}
+                      </button>
+                    );
+                  })}
                 </div>
-                <div>
-                  <label className="admin-label">{to("buttonLink")}</label>
-                  <input
-                    className="input-field"
-                    placeholder="/menu"
-                    value={form.buttonLink}
-                    onChange={(e) =>
-                      setForm({ ...form, buttonLink: e.target.value })
-                    }
-                  />
-                </div>
+                <input
+                  className="input-field"
+                  placeholder={to("buttonTextPlaceholder")}
+                  value={form.buttonText}
+                  onChange={(e) =>
+                    setForm({ ...form, buttonText: e.target.value })
+                  }
+                />
               </div>
 
               <div className="flex flex-wrap gap-4 rounded-xl border border-dolce-secondary/60 bg-dolce-secondary/20 px-4 py-3 dark:border-white/10 dark:bg-white/5">

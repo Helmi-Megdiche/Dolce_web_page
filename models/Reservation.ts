@@ -14,6 +14,9 @@ export interface IReservation extends Document {
   reservationTime: string;
   numberOfPeople: number;
   specialRequests: string;
+  offerId?: string;
+  offerTitle?: string;
+  offerDiscountLabel?: string;
   status: ReservationStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -28,6 +31,9 @@ const ReservationSchema = new Schema<IReservation>(
     reservationTime: { type: String, required: true },
     numberOfPeople: { type: Number, required: true, min: 1, max: 20 },
     specialRequests: { type: String, default: "" },
+    offerId: { type: String, default: "" },
+    offerTitle: { type: String, default: "" },
+    offerDiscountLabel: { type: String, default: "" },
     status: {
       type: String,
       enum: ["pending", "confirmed", "cancelled", "completed"],

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Star, ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/routing";
@@ -6,6 +7,9 @@ import OffersCarousel from "@/components/public/OffersCarousel";
 
 export const dynamic = "force-dynamic";
 
+const HERO_IMAGE =
+  "https://images.unsplash.com/photo-1519676867240-f03562e64548?w=1920&q=80";
+
 export default async function HomePage() {
   const settings = await getSettings();
   const t = await getTranslations("home");
@@ -13,12 +17,13 @@ export default async function HomePage() {
   return (
     <>
       <section className="relative min-h-[calc(100vh-73px)] overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1519676867240-f03562e64548?w=1920&q=80')",
-          }}
+        <Image
+          src={HERO_IMAGE}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#2D1B12]/90 via-[#2D1B12]/70 to-[#2D1B12]/40" />
 

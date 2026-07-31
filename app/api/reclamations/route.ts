@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
-import { getAppUrl, sendEmail } from "@/lib/email";
+import { getAdminNotifyEmails, getAppUrl, sendEmail } from "@/lib/email";
 import { digitsOnly, isValidEmail, isValidPhone } from "@/lib/validation";
 import { sendWhatsAppAlert } from "@/lib/whatsapp";
 import Reclamation from "@/models/Reclamation";
@@ -18,7 +18,7 @@ async function notifyAdmins(payload: {
 }) {
   const appUrl = getAppUrl();
   const adminUrl = `${appUrl}/fr/admin/dashboard?tab=reclamations`;
-  const adminEmail = (process.env.ADMIN_EMAIL || "").trim();
+  const adminEmails = getAdminNotifyEmails();
   const truncatedMessage = truncate(payload.message, 1000);
 
   const contactLines = [
@@ -33,10 +33,10 @@ async function notifyAdmins(payload: {
       : "Contact: Anonyme";
 
   // Email — never fail the API if this errors
-  if (adminEmail) {
+  if (adminEmails.length > 0) {
     try {
       await sendEmail({
-        to: adminEmail,
+        to: adminEmails,
         subject: "Nouvelle réclamation Dolce.tn",
         text: [
           "Nouvelle réclamation reçue sur Dolce.tn",
@@ -68,7 +68,9 @@ async function notifyAdmins(payload: {
       console.error("[reclamations] Email notify failed:", error);
     }
   } else {
-    console.warn("[reclamations] ADMIN_EMAIL not set — skipping email alert.");
+    console.warn(
+      "[reclamations] No ADMIN_EMAIL / EMAIL_USER — skipping email alert."
+    );
   }
 
   // WhatsApp — never fail the API if this errors
@@ -131,7 +133,7 @@ export async function POST(req: NextRequest) {
     const phone = digitsOnly(phoneRaw);
     if (phoneRaw && !isValidPhone(phone)) {
       return NextResponse.json(
-        { error: "Phone must contain only digits (8–15 numbers)" },
+        { error: "Phone must be exactly 8 digits" },
         { status: 400 }
       );
     }

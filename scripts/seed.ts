@@ -84,6 +84,7 @@ async function seed() {
     instagram_url: "https://www.instagram.com/dolce.tn/",
     tiktok_url: "https://www.tiktok.com/@dolce.tn",
     facebook_url: "https://www.facebook.com/dolce.tn",
+    whatsapp_url: "https://wa.me/21642386082",
     glovo_url: "https://glovoapp.com/",
     rating: "4.6",
     price_range: "10-20 DT",

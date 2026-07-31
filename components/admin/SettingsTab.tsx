@@ -12,6 +12,7 @@ const KEYS = [
   "instagram_url",
   "tiktok_url",
   "facebook_url",
+  "whatsapp_url",
   "glovo_url",
   "rating",
   "price_range",

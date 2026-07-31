@@ -16,7 +16,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "*.utfs.io",
+        hostname: "**.utfs.io",
       },
       {
         protocol: "https",
@@ -24,7 +24,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "*.ufs.sh",
+        hostname: "**.ufs.sh",
       },
       {
         protocol: "https",
@@ -32,7 +32,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "*.uploadthing.com",
+        hostname: "**.uploadthing.com",
       },
     ],
   },

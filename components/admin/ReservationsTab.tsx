@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Tag, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface Reservation {
@@ -13,6 +13,8 @@ interface Reservation {
   reservationTime: string;
   numberOfPeople: number;
   specialRequests: string;
+  offerTitle?: string;
+  offerDiscountLabel?: string;
   status: string;
 }
 
@@ -95,6 +97,17 @@ export default function ReservationsTab() {
                 <tr key={r._id} className="admin-row">
                   <td className="px-4 py-3">
                     <div className="font-medium">{r.customerName}</div>
+                    {r.offerTitle && (
+                      <div className="mt-1.5 inline-flex max-w-full items-center gap-1 rounded-full bg-[#ff9e8d]/20 px-2 py-0.5 text-[11px] font-semibold text-[#c45f4c] dark:bg-[#ff9e8d]/15 dark:text-[#ff9e8d]">
+                        <Tag size={11} className="shrink-0" />
+                        <span className="truncate">
+                          {r.offerTitle}
+                          {r.offerDiscountLabel
+                            ? ` · ${r.offerDiscountLabel}`
+                            : ""}
+                        </span>
+                      </div>
+                    )}
                     {r.specialRequests && (
                       <div className="mt-0.5 text-xs text-dolce-text/55 dark:text-white/45">
                         {r.specialRequests}

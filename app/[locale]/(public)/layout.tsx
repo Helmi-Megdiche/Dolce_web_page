@@ -19,6 +19,7 @@ export default async function PublicLayout({
         instagram={settings.instagram_url}
         facebook={settings.facebook_url}
         tiktok={settings.tiktok_url}
+        whatsapp={settings.whatsapp_url}
       />
     </div>
   );

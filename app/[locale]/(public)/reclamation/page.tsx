@@ -1,7 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { CheckCircle2, MessageSquareWarning } from "lucide-react";
+import { FormEvent, ReactNode, useState } from "react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  MessageSquareHeart,
+  Shield,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import FieldError, { fieldErrorClass } from "@/components/ui/FieldError";
@@ -12,6 +17,14 @@ type FieldErrors = {
   phone?: string;
   message?: string;
 };
+
+function SectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.16em] text-dolce-primary dark:text-dolce-accent">
+      {children}
+    </p>
+  );
+}
 
 export default function ReclamationPage() {
   const t = useTranslations("reclamation");
@@ -42,7 +55,7 @@ export default function ReclamationPage() {
     if (trimmedEmail && !isValidEmail(trimmedEmail)) {
       next.email = tc("emailInvalid");
     }
-    if (phone && !isValidPhone(phoneDigits)) {
+    if (phoneDigits && !isValidPhone(phoneDigits)) {
       next.phone = tc("phoneInvalid");
     }
 
@@ -84,28 +97,31 @@ export default function ReclamationPage() {
 
   if (success) {
     return (
-      <div className="mx-auto max-w-xl px-4 py-16">
-        <div className="admin-card space-y-5 p-8 text-center shadow-sm">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
-            <CheckCircle2 size={28} />
-          </div>
-          <h1 className="font-playfair text-2xl font-semibold text-dolce-text dark:text-[#f5e6d3]">
-            {t("thankYouTitle")}
-          </h1>
-          <p className="text-sm text-dolce-text/70 dark:text-white/60">
-            {t("success")}
-          </p>
-          <div className="flex flex-wrap justify-center gap-3 pt-2">
-            <Link href="/" className="btn-primary text-sm">
-              {t("backHome")}
-            </Link>
-            <button
-              type="button"
-              onClick={() => setSuccess(false)}
-              className="btn-secondary text-sm"
-            >
-              {t("sendAnother")}
-            </button>
+      <div className="relative overflow-hidden">
+        <div className="pointer-events-none absolute -right-20 top-16 h-64 w-64 rounded-full bg-dolce-brand/15 blur-3xl dark:bg-dolce-brand/10" />
+        <div className="relative mx-auto max-w-xl px-4 py-16">
+          <div className="overflow-hidden rounded-3xl bg-white p-8 text-center shadow-[0_20px_50px_-28px_rgba(139,94,60,0.45)] ring-1 ring-dolce-secondary/60 dark:bg-[#241912] dark:ring-white/10 md:p-10">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
+              <CheckCircle2 size={28} />
+            </div>
+            <h1 className="mt-5 font-playfair text-3xl font-semibold text-dolce-text dark:text-[#f5e6d3]">
+              {t("thankYouTitle")}
+            </h1>
+            <p className="mt-3 text-sm text-dolce-text/70 dark:text-white/60">
+              {t("success")}
+            </p>
+            <div className="mt-7 flex flex-wrap justify-center gap-3">
+              <Link href="/" className="btn-primary text-sm">
+                {t("backHome")}
+              </Link>
+              <button
+                type="button"
+                onClick={() => setSuccess(false)}
+                className="btn-secondary text-sm"
+              >
+                {t("sendAnother")}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -113,114 +129,175 @@ export default function ReclamationPage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-12">
-      <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-dolce-primary/15 text-dolce-primary dark:bg-dolce-accent/20 dark:text-dolce-accent">
-          <MessageSquareWarning size={28} />
+    <div className="relative overflow-hidden">
+      <div className="pointer-events-none absolute -right-24 top-10 h-72 w-72 rounded-full bg-dolce-brand/15 blur-3xl dark:bg-dolce-brand/10" />
+      <div className="pointer-events-none absolute -left-20 top-48 h-64 w-64 rounded-full bg-dolce-accent/20 blur-3xl dark:bg-dolce-accent/10" />
+
+      <div className="relative mx-auto max-w-2xl px-4 py-12 md:py-16">
+        <div className="mb-8 text-center md:mb-10">
+          <p className="inline-flex items-center gap-1.5 rounded-full border border-dolce-accent/40 bg-white/70 px-3.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-dolce-primary backdrop-blur-sm dark:border-dolce-accent/25 dark:bg-white/5 dark:text-dolce-accent">
+            <MessageSquareHeart size={13} className="shrink-0" />
+            {t("eyebrow")}
+          </p>
+          <h1 className="section-title mt-4">{t("title")}</h1>
+          <p className="mx-auto mt-3 max-w-lg text-sm text-dolce-text/65 dark:text-white/55 md:text-base">
+            {t("subtitle")}
+          </p>
+          <div className="mx-auto mt-5 h-px w-24 bg-gradient-to-r from-transparent via-dolce-accent to-transparent" />
         </div>
-        <h1 className="section-title">{t("title")}</h1>
-        <p className="mt-3 text-dolce-text/70 dark:text-white/60">
-          {t("subtitle")}
-        </p>
+
+        <form
+          noValidate
+          onSubmit={handleSubmit}
+          className="overflow-hidden rounded-3xl bg-white shadow-[0_20px_50px_-28px_rgba(139,94,60,0.45)] ring-1 ring-dolce-secondary/60 dark:bg-[#241912] dark:ring-white/10"
+        >
+          <div className="space-y-7 p-5 md:p-8">
+            <div className="flex items-start gap-3 rounded-2xl border border-dolce-accent/35 bg-gradient-to-r from-dolce-secondary/70 to-transparent px-4 py-3.5 dark:border-dolce-accent/25 dark:from-[#2a1f18]">
+              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-dolce-accent/20 text-dolce-primary dark:text-dolce-accent">
+                <Shield size={16} />
+              </span>
+              <p className="text-sm leading-relaxed text-dolce-text/75 dark:text-white/65">
+                {t("anonymous")}
+              </p>
+            </div>
+
+            {error && (
+              <div className="rounded-2xl border border-red-300/50 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-900/25 dark:text-red-200">
+                {error}
+              </div>
+            )}
+
+            <section>
+              <SectionLabel>{t("contactSection")}</SectionLabel>
+              <div className="space-y-4">
+                <div>
+                  <label
+                    className="mb-1.5 block text-sm font-medium text-dolce-text dark:text-[#f5e6d3]"
+                    htmlFor="rec-name"
+                  >
+                    {t("name")}{" "}
+                    <span className="font-normal text-dolce-text/40 dark:text-white/35">
+                      ({t("optional")})
+                    </span>
+                  </label>
+                  <input
+                    id="rec-name"
+                    className="input-field"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="name"
+                    placeholder={t("namePlaceholder")}
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label
+                      className="mb-1.5 block text-sm font-medium text-dolce-text dark:text-[#f5e6d3]"
+                      htmlFor="rec-email"
+                    >
+                      {t("email")}{" "}
+                      <span className="font-normal text-dolce-text/40 dark:text-white/35">
+                        ({t("optional")})
+                      </span>
+                    </label>
+                    <input
+                      id="rec-email"
+                      type="text"
+                      inputMode="email"
+                      autoComplete="email"
+                      className={`input-field ${fieldErrorClass(!!fieldErrors.email)}`}
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          email: undefined,
+                        }));
+                      }}
+                      placeholder="name@email.com"
+                    />
+                    <FieldError message={fieldErrors.email} />
+                  </div>
+
+                  <div>
+                    <div className="mb-1.5 flex items-center justify-between gap-2">
+                      <label
+                        className="block text-sm font-medium text-dolce-text dark:text-[#f5e6d3]"
+                        htmlFor="rec-phone"
+                      >
+                        {t("phone")}{" "}
+                        <span className="font-normal text-dolce-text/40 dark:text-white/35">
+                          ({t("optional")})
+                        </span>
+                      </label>
+                      <span className="text-[11px] text-dolce-text/40 dark:text-white/35">
+                        {t("phoneHint")}
+                      </span>
+                    </div>
+                    <input
+                      id="rec-phone"
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel"
+                      className={`input-field ${fieldErrorClass(!!fieldErrors.phone)}`}
+                      value={phone}
+                      onChange={(e) => {
+                        setPhone(digitsOnly(e.target.value).slice(0, 8));
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          phone: undefined,
+                        }));
+                      }}
+                      maxLength={8}
+                      placeholder={t("phonePlaceholder")}
+                    />
+                    <FieldError message={fieldErrors.phone} />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div className="h-px bg-gradient-to-r from-transparent via-dolce-secondary to-transparent dark:via-white/10" />
+
+            <section>
+              <SectionLabel>{t("messageSection")}</SectionLabel>
+              <label
+                className="mb-1.5 block text-sm font-medium text-dolce-text dark:text-[#f5e6d3]"
+                htmlFor="rec-message"
+              >
+                {t("message")} *
+              </label>
+              <textarea
+                id="rec-message"
+                rows={5}
+                className={`input-field resize-none ${fieldErrorClass(!!fieldErrors.message)}`}
+                value={message}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  setFieldErrors((prev) => ({
+                    ...prev,
+                    message: undefined,
+                  }));
+                }}
+                placeholder={t("messagePlaceholder")}
+              />
+              <FieldError message={fieldErrors.message} />
+            </section>
+          </div>
+
+          <div className="border-t border-dolce-secondary/60 bg-dolce-bg/50 px-5 py-5 dark:border-white/10 dark:bg-[#1e1510]/80 md:px-8">
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full text-base disabled:opacity-70"
+            >
+              {loading ? t("sending") : t("submit")}
+              {!loading && <ArrowRight size={18} />}
+            </button>
+          </div>
+        </form>
       </div>
-
-      <form
-        noValidate
-        onSubmit={handleSubmit}
-        className="admin-card space-y-4 p-6 shadow-sm md:p-8"
-      >
-        <p className="rounded-xl border border-dolce-accent/40 bg-dolce-secondary/40 px-4 py-3 text-sm text-dolce-text dark:border-dolce-accent/30 dark:bg-[#2a1f18] dark:text-dolce-secondary">
-          {t("anonymous")}
-        </p>
-
-        {error && <p className="admin-alert-error">{error}</p>}
-
-        <div>
-          <label className="admin-label" htmlFor="rec-name">
-            {t("name")}{" "}
-            <span className="font-normal text-dolce-text/45 dark:text-white/35">
-              ({t("optional")})
-            </span>
-          </label>
-          <input
-            id="rec-name"
-            className="input-field"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoComplete="name"
-            placeholder={t("namePlaceholder")}
-          />
-        </div>
-
-        <div>
-          <label className="admin-label" htmlFor="rec-email">
-            {t("email")}{" "}
-            <span className="font-normal text-dolce-text/45 dark:text-white/35">
-              ({t("optional")})
-            </span>
-          </label>
-          <input
-            id="rec-email"
-            type="text"
-            inputMode="email"
-            autoComplete="email"
-            className={`input-field ${fieldErrorClass(!!fieldErrors.email)}`}
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setFieldErrors((prev) => ({ ...prev, email: undefined }));
-            }}
-            placeholder="name@example.com"
-          />
-          <FieldError message={fieldErrors.email} />
-        </div>
-
-        <div>
-          <label className="admin-label" htmlFor="rec-phone">
-            {t("phone")}{" "}
-            <span className="font-normal text-dolce-text/45 dark:text-white/35">
-              ({t("optional")})
-            </span>
-          </label>
-          <input
-            id="rec-phone"
-            type="text"
-            inputMode="numeric"
-            autoComplete="tel"
-            className={`input-field ${fieldErrorClass(!!fieldErrors.phone)}`}
-            value={phone}
-            onChange={(e) => {
-              setPhone(digitsOnly(e.target.value));
-              setFieldErrors((prev) => ({ ...prev, phone: undefined }));
-            }}
-            placeholder="XX XXX XXX"
-          />
-          <FieldError message={fieldErrors.phone} />
-        </div>
-
-        <div>
-          <label className="admin-label" htmlFor="rec-message">
-            {t("message")}
-          </label>
-          <textarea
-            id="rec-message"
-            required
-            rows={5}
-            className={`input-field resize-none ${fieldErrorClass(!!fieldErrors.message)}`}
-            value={message}
-            onChange={(e) => {
-              setMessage(e.target.value);
-              setFieldErrors((prev) => ({ ...prev, message: undefined }));
-            }}
-            placeholder={t("messagePlaceholder")}
-          />
-          <FieldError message={fieldErrors.message} />
-        </div>
-
-        <button type="submit" disabled={loading} className="btn-primary w-full">
-          {loading ? t("sending") : t("submit")}
-        </button>
-      </form>
     </div>
   );
 }
