@@ -166,4 +166,4 @@ i18n/                   # next-intl routing & request config
 
 ## License
 
-Private / project use for Dolce.
+This project is licensed under the [MIT License](LICENSE).
