@@ -39,6 +39,12 @@
     "bookTable": "Réserver une table",
     "googleRating": "Google"
   },
+  "offers": {
+    "title": "Offres spéciales",
+    "subtitle": "Promotions et douceurs en édition limitée chez Dolce.",
+    "expires": "Expire le",
+    "viewOffer": "Voir l'offre"
+  },
   "menuPage": {
     "title": "Notre Menu",
     "subtitle": "Crêpes, pancakes, bubble waffles et douceurs",
@@ -152,6 +158,7 @@
   },
   "admin": {
     "menu": "Menu",
+    "offers": "Offres",
     "hours": "Horaires",
     "reservations": "Réservations",
     "reclamations": "Réclamations",
@@ -241,6 +248,39 @@
       "confirmed": "Confirmée",
       "cancelled": "Annulée",
       "completed": "Terminée"
+    },
+    "offersPanel": {
+      "title": "Offres spéciales",
+      "subtitle": "Créez des promotions limitées dans le temps affichées sur l'accueil",
+      "create": "Ajouter une offre",
+      "edit": "Modifier l'offre",
+      "titleField": "Titre",
+      "discountLabel": "Badge promo",
+      "discountHint": "Choisissez un modèle — c’est le badge affiché sur la carte offre.",
+      "discountNone": "Aucun",
+      "discountBogo": "2 pour 1",
+      "discountHappyHour": "Happy Hour",
+      "discountCustom": "Personnalisé",
+      "discountCustomPlaceholder": "ex. Offre étudiant",
+      "discountPreviewEmpty": "Pas de badge",
+      "start": "Début",
+      "end": "Fin",
+      "dates": "Période",
+      "titleCol": "Offre",
+      "active": "Active",
+      "inactive": "Inactive",
+      "highlighted": "Mise en avant",
+      "buttonText": "Texte du bouton",
+      "buttonLink": "Lien du bouton",
+      "buttonTextPlaceholder": "Voir l'offre",
+      "noOffers": "Aucune offre pour le moment",
+      "count": "{count} offres",
+      "requiredFields": "Le titre, la date de début et la date de fin sont requis.",
+      "created": "Offre créée",
+      "updated": "Offre mise à jour",
+      "deleteConfirm": "Supprimer cette offre ?",
+      "activate": "Activer",
+      "deactivate": "Désactiver"
     },
     "reclamationsPanel": {
       "title": "Réclamations",

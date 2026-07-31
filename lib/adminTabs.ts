@@ -1,5 +1,6 @@
 export const tabIds = [
   "menu",
+  "offers",
   "hours",
   "reservations",
   "reclamations",

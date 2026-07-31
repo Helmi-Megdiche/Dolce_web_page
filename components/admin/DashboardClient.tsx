@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/routing";
 import {
   UtensilsCrossed,
+  Tag,
   Clock,
   CalendarDays,
   MessageSquareWarning,
@@ -19,6 +20,7 @@ import ThemeToggle from "@/components/ui/ThemeToggle";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import { tabIds, type TabId } from "@/lib/adminTabs";
 import MenuTab from "./MenuTab";
+import OffersTab from "./OffersTab";
 import HoursTab from "./HoursTab";
 import ReservationsTab from "./ReservationsTab";
 import ReclamationsTab from "./ReclamationsTab";
@@ -27,6 +29,7 @@ import ProfileTab from "./ProfileTab";
 
 const icons = {
   menu: UtensilsCrossed,
+  offers: Tag,
   hours: Clock,
   reservations: CalendarDays,
   reclamations: MessageSquareWarning,
@@ -147,6 +150,7 @@ export default function DashboardClient({
 
         <div className="flex-1 overflow-auto p-4 md:p-6">
           {active === "menu" && <MenuTab />}
+          {active === "offers" && <OffersTab />}
           {active === "hours" && <HoursTab />}
           {active === "reservations" && <ReservationsTab />}
           {active === "reclamations" && <ReclamationsTab />}

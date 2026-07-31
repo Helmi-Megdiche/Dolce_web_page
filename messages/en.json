@@ -39,6 +39,12 @@
     "bookTable": "Book a table",
     "googleRating": "Google"
   },
+  "offers": {
+    "title": "Special offers",
+    "subtitle": "Limited-time treats and promotions from Dolce.",
+    "expires": "Expires",
+    "viewOffer": "View offer"
+  },
   "menuPage": {
     "title": "Our Menu",
     "subtitle": "Crêpes, pancakes, bubble waffles and sweet treats",
@@ -152,6 +158,7 @@
   },
   "admin": {
     "menu": "Menu",
+    "offers": "Offers",
     "hours": "Hours",
     "reservations": "Reservations",
     "reclamations": "Feedback",
@@ -241,6 +248,39 @@
       "confirmed": "Confirmed",
       "cancelled": "Cancelled",
       "completed": "Completed"
+    },
+    "offersPanel": {
+      "title": "Special offers",
+      "subtitle": "Create time-bound promotions shown on the homepage",
+      "create": "Add offer",
+      "edit": "Edit offer",
+      "titleField": "Title",
+      "discountLabel": "Discount badge",
+      "discountHint": "Tap a preset — this is the badge shown on the offer card.",
+      "discountNone": "None",
+      "discountBogo": "Buy 1 Get 1",
+      "discountHappyHour": "Happy Hour",
+      "discountCustom": "Custom",
+      "discountCustomPlaceholder": "e.g. Student deal",
+      "discountPreviewEmpty": "No badge",
+      "start": "Start",
+      "end": "End",
+      "dates": "Date range",
+      "titleCol": "Offer",
+      "active": "Active",
+      "inactive": "Inactive",
+      "highlighted": "Highlighted",
+      "buttonText": "Button text",
+      "buttonLink": "Button link",
+      "buttonTextPlaceholder": "See offer",
+      "noOffers": "No offers yet",
+      "count": "{count} offers",
+      "requiredFields": "Title, start date and end date are required.",
+      "created": "Offer created",
+      "updated": "Offer updated",
+      "deleteConfirm": "Delete this offer?",
+      "activate": "Activate",
+      "deactivate": "Deactivate"
     },
     "reclamationsPanel": {
       "title": "Feedback",

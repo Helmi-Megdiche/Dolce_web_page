@@ -6,6 +6,7 @@ Dynamic website for **Dolce** crêperie (Ariana, Tunisia), built with Next.js 14
 
 ### Public site
 - **Home, Menu, Reservation, About, Feedback (Réclamation)** — content from MongoDB
+- **Special offers** on the homepage — highlighted banners + horizontal offer cards (active & in date range only)
 - **French / English** — `next-intl` with locale routes (`/fr/...`, `/en/...`)
 - **Light / dark theme** — `next-themes` with a Dolce warm palette
 - **Reservation form** — phone digits-only, custom email validation, time slots
@@ -16,6 +17,7 @@ Dynamic website for **Dolce** crêperie (Ariana, Tunisia), built with Next.js 14
 - **Login** with JWT in an HTTP-only cookie + bcrypt passwords
 - **Forgot / reset password** — choose **Email** or **WhatsApp** for the reset link
 - **Menu** — create, edit, delete; auto display order; **Uploadthing** cloud image upload
+- **Offers** — time-bound promotions (image, discount badge presets, dates, highlight, CTA)
 - **Hours** — per-day schedule, open/closed toggles, copy Monday → weekdays / apply to all
 - **Reservations** — list and update status
 - **Feedback (Réclamations)** — view messages; mark resolved / dismiss
@@ -116,6 +118,7 @@ Default credentials (after seed): `admin@dolce.tn` / `admin123`
 | Tab | What you can do |
 |-----|-----------------|
 | Menu | Manage items, categories, prices, availability; upload images (Uploadthing) |
+| Offers | Create/edit promotions with dates, badge presets, highlight & CTA |
 | Hours | Edit weekly opening hours |
 | Reservations | View bookings and change status |
 | Feedback | View reclamations; mark resolved / dismiss |
@@ -134,7 +137,10 @@ Default credentials (after seed): `admin@dolce.tn` / `admin123`
 | POST | `/api/auth/reset-password` | Reset with token |
 | GET/POST | `/api/menu` | List / create menu items |
 | PUT/DELETE | `/api/menu/[id]` | Update / delete item |
-| GET/POST | `/api/uploadthing` | Uploadthing menu images (admin JWT) |
+| GET/POST | `/api/uploadthing` | Uploadthing images (admin JWT) |
+| GET | `/api/offers` | Public active offers (in date range) |
+| GET/POST | `/api/admin/offers` | Admin list / create offers |
+| PUT/DELETE | `/api/admin/offers/[id]` | Update / delete offer |
 | GET/PUT | `/api/hours` | Opening hours |
 | GET/POST | `/api/reservations` | Public create (+ notify) / admin list |
 | PUT/DELETE | `/api/reservations/[id]` | Update status / delete |
@@ -148,17 +154,18 @@ Default credentials (after seed): `admin@dolce.tn` / `admin123`
 ```
 app/
   [locale]/
-    (public)/           # Home, Menu, Reservation, Reclamation, About
+    (public)/           # Home (+ offers), Menu, Reservation, Reclamation, About
     admin/              # Login, forgot/reset password, dashboard
-  api/                  # REST API routes (incl. uploadthing, reclamations)
+  api/                  # REST API (uploadthing, offers, reclamations, …)
   providers.tsx         # Theme provider
 components/
-  admin/                # Dashboard tabs (Menu, Hours, Reclamations, …)
+  admin/                # Dashboard tabs (Menu, Offers, Hours, …)
+  public/               # OffersCarousel, …
   ui/                   # Logo, LanguageSwitcher, ThemeToggle,
                         # PasswordInput, ImageUploadField, …
 lib/                    # MongoDB, auth, validation, email, whatsapp, uploadthing
 messages/               # en.json, fr.json
-models/                 # Mongoose schemas (incl. Reclamation)
+models/                 # Mongoose schemas (Menu, Offer, Reclamation, …)
 public/images/          # Brand assets
 scripts/seed.ts         # DB seed
 i18n/                   # next-intl routing & request config
@@ -172,7 +179,7 @@ i18n/                   # next-intl routing & request config
 4. Deploy  
 5. Run the seed script once against your production DB (locally with the Atlas URI)  
 
-Menu images use Uploadthing (not the local filesystem), so they work on Vercel’s ephemeral disk.
+Menu/offer images use Uploadthing (not the local filesystem), so they work on Vercel’s ephemeral disk.
 
 ## Scripts
 
