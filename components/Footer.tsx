@@ -1,6 +1,10 @@
-import Link from "next/link";
+"use client";
+
 import { MapPin, Phone } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/SocialIcons";
+import Logo from "@/components/ui/Logo";
 
 interface FooterProps {
   phone?: string;
@@ -17,14 +21,15 @@ export default function Footer({
   facebook,
   tiktok,
 }: FooterProps) {
+  const t = useTranslations("footer");
+  const tc = useTranslations("common");
+
   return (
-    <footer className="mt-auto border-t border-dolce-secondary bg-dolce-text text-dolce-secondary">
+    <footer className="mt-auto border-t border-dolce-secondary bg-dolce-text text-dolce-secondary dark:border-white/10 dark:bg-[#120c09]">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:grid-cols-3">
         <div>
-          <h3 className="font-playfair text-2xl font-bold text-white">Dolce</h3>
-          <p className="mt-2 text-sm opacity-80">
-            Exploring the sweet side of life
-          </p>
+          <Logo size="sm" href="/" />
+          <p className="mt-3 text-sm opacity-80">{t("tagline")}</p>
         </div>
 
         <div className="space-y-2 text-sm">
@@ -42,7 +47,7 @@ export default function Footer({
         </div>
 
         <div className="flex flex-col gap-3">
-          <p className="text-sm font-medium text-white">Suivez-nous</p>
+          <p className="text-sm font-medium text-white">{tc("followUs")}</p>
           <div className="flex gap-4">
             {instagram && (
               <a
@@ -82,12 +87,12 @@ export default function Footer({
             href="/admin/login"
             className="mt-2 text-xs opacity-40 transition hover:opacity-70"
           >
-            Admin
+            {tc("admin")}
           </Link>
         </div>
       </div>
       <div className="border-t border-white/10 py-4 text-center text-xs opacity-60">
-        © {new Date().getFullYear()} Dolce.tn — Ariana, Tunisia
+        © {new Date().getFullYear()} {t("rights")}
       </div>
     </footer>
   );

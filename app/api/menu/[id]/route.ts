@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { getAdminFromRequest } from "@/lib/auth";
 import Menu from "@/models/Menu";
+import { resequenceMenuOrders } from "@/lib/menuOrder";
 
 export async function PUT(
   req: NextRequest,
@@ -15,6 +16,7 @@ export async function PUT(
     await connectToDatabase();
     const body = await req.json();
 
+    // displayOrder is managed automatically — ignore client changes on update
     const item = await Menu.findByIdAndUpdate(
       params.id,
       {
@@ -24,9 +26,6 @@ export async function PUT(
         ...(body.category !== undefined && { category: body.category }),
         ...(body.imageUrl !== undefined && { imageUrl: body.imageUrl }),
         ...(body.isAvailable !== undefined && { isAvailable: body.isAvailable }),
-        ...(body.displayOrder !== undefined && {
-          displayOrder: Number(body.displayOrder),
-        }),
       },
       { new: true, runValidators: true }
     );
@@ -60,6 +59,9 @@ export async function DELETE(
     if (!item) {
       return NextResponse.json({ error: "Item not found" }, { status: 404 });
     }
+
+    // Close gaps: 1,2,3,4,5 → delete 3 → 1,2,3,4
+    await resequenceMenuOrders();
 
     return NextResponse.json({ success: true });
   } catch (error) {

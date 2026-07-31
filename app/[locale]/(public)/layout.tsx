@@ -10,7 +10,7 @@ export default async function PublicLayout({
   const settings = await getSettings();
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-dolce-bg dark:bg-[#1a120e]">
       <Navbar phone={settings.phone} />
       <main className="flex-1">{children}</main>
       <Footer

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { getAdminFromRequest } from "@/lib/auth";
 import Menu from "@/models/Menu";
+import { getNextDisplayOrder } from "@/lib/menuOrder";
 
 export async function GET(req: NextRequest) {
   try {
@@ -36,6 +37,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const displayOrder = await getNextDisplayOrder();
+
     const item = await Menu.create({
       name: body.name,
       description: body.description || "",
@@ -43,7 +46,7 @@ export async function POST(req: NextRequest) {
       category: body.category,
       imageUrl: body.imageUrl || "",
       isAvailable: body.isAvailable !== false,
-      displayOrder: Number(body.displayOrder) || 0,
+      displayOrder,
     });
 
     return NextResponse.json(item, { status: 201 });

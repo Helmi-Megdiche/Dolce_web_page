@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { digitsOnly } from "@/lib/validation";
 
 const KEYS = [
   "hero_title",
@@ -13,26 +15,16 @@ const KEYS = [
   "glovo_url",
   "rating",
   "price_range",
-];
-
-const LABELS: Record<string, string> = {
-  hero_title: "Hero title",
-  hero_subtitle: "Hero subtitle",
-  phone: "Phone",
-  address: "Address",
-  instagram_url: "Instagram URL",
-  tiktok_url: "TikTok URL",
-  facebook_url: "Facebook URL",
-  glovo_url: "Glovo URL",
-  rating: "Rating",
-  price_range: "Price range",
-};
+] as const;
 
 export default function SettingsTab() {
+  const t = useTranslations("admin");
+  const tc = useTranslations("common");
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageOk, setMessageOk] = useState(false);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -57,46 +49,50 @@ export default function SettingsTab() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        setMessage("Failed to save");
+        setMessageOk(false);
+        setMessage(t("saveFailed"));
         return;
       }
-      setMessage("Settings saved successfully");
+      setMessageOk(true);
+      setMessage(t("settingsSaved"));
     } catch {
-      setMessage("Failed to save");
+      setMessageOk(false);
+      setMessage(t("saveFailed"));
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading) return <p className="text-dolce-text/60">Loading…</p>;
+  function labelFor(key: (typeof KEYS)[number]) {
+    return t(`settingLabels.${key}` as `settingLabels.${typeof key}`);
+  }
+
+  if (loading) return <p className="admin-muted">{tc("loading")}</p>;
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-dolce-text/60">Site content & links</p>
-        <button type="button" onClick={save} disabled={saving} className="btn-primary text-sm">
-          {saving ? "Saving…" : "Save settings"}
+    <div className="text-dolce-text dark:text-[#f5e6d3]">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <p className="admin-muted">{t("settingsHint")}</p>
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving}
+          className="btn-primary shrink-0 text-sm"
+        >
+          {saving ? tc("saving") : t("saveSettings")}
         </button>
       </div>
 
       {message && (
-        <p
-          className={`mb-4 rounded-lg px-3 py-2 text-sm ${
-            message.includes("success")
-              ? "bg-green-50 text-green-700"
-              : "bg-red-50 text-red-700"
-          }`}
-        >
+        <p className={`mb-4 ${messageOk ? "admin-alert-success" : "admin-alert-error"}`}>
           {message}
         </p>
       )}
 
-      <div className="space-y-4 rounded-xl bg-white p-6 ring-1 ring-dolce-secondary/50">
+      <div className="admin-card space-y-4 p-6">
         {KEYS.map((key) => (
           <div key={key}>
-            <label className="mb-1.5 block text-sm font-medium">
-              {LABELS[key] || key}
-            </label>
+            <label className="admin-label">{labelFor(key)}</label>
             {key === "hero_subtitle" || key === "address" ? (
               <textarea
                 className="input-field resize-none"
@@ -109,9 +105,16 @@ export default function SettingsTab() {
             ) : (
               <input
                 className="input-field"
+                inputMode={key === "phone" ? "numeric" : undefined}
                 value={settings[key] || ""}
                 onChange={(e) =>
-                  setSettings({ ...settings, [key]: e.target.value })
+                  setSettings({
+                    ...settings,
+                    [key]:
+                      key === "phone"
+                        ? digitsOnly(e.target.value)
+                        : e.target.value,
+                  })
                 }
               />
             )}

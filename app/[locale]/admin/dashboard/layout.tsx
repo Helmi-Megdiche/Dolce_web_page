@@ -1,14 +1,16 @@
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { getAdminFromCookies } from "@/lib/auth";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const admin = getAdminFromCookies();
   if (!admin) {
-    redirect("/admin/login");
+    const locale = await getLocale();
+    redirect(`/${locale}/admin/login`);
   }
 
   return <>{children}</>;

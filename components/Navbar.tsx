@@ -1,37 +1,39 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X, Phone } from "lucide-react";
-
-const links = [
-  { href: "/", label: "Accueil" },
-  { href: "/menu", label: "Menu" },
-  { href: "/reservation", label: "Réservation" },
-  { href: "/about", label: "À propos" },
-];
+import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/i18n/routing";
+import Logo from "@/components/ui/Logo";
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 
 export default function Navbar({ phone }: { phone?: string }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const t = useTranslations("common");
+
+  const links = [
+    { href: "/", label: t("home") },
+    { href: "/menu", label: t("menu") },
+    { href: "/reservation", label: t("reservation") },
+    { href: "/about", label: t("about") },
+  ] as const;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-dolce-secondary/60 bg-dolce-bg/90 backdrop-blur-md">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <Link href="/" className="font-playfair text-2xl font-bold text-dolce-primary">
-          Dolce
-        </Link>
+    <header className="sticky top-0 z-50 border-b border-dolce-secondary/60 bg-dolce-bg/90 backdrop-blur-md dark:border-white/10 dark:bg-[#1a120e]/90">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+        <Logo size="sm" priority />
 
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-6 md:flex">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`text-sm font-medium transition hover:text-dolce-primary ${
+              className={`text-sm font-medium transition hover:text-dolce-primary dark:hover:text-dolce-accent ${
                 pathname === link.href
-                  ? "text-dolce-primary"
-                  : "text-dolce-text/70"
+                  ? "text-dolce-primary dark:text-dolce-accent"
+                  : "text-dolce-text/70 dark:text-white/70"
               }`}
             >
               {link.label}
@@ -46,20 +48,26 @@ export default function Navbar({ phone }: { phone?: string }) {
               {phone}
             </a>
           )}
+          <LanguageSwitcher />
+          <ThemeToggle />
         </div>
 
-        <button
-          type="button"
-          className="md:hidden"
-          onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
-        >
-          {open ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <LanguageSwitcher />
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => setOpen(!open)}
+            aria-label="Toggle menu"
+            className="rounded-lg p-1 dark:text-white"
+          >
+            {open ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </nav>
 
       {open && (
-        <div className="border-t border-dolce-secondary bg-dolce-bg px-4 py-4 md:hidden">
+        <div className="border-t border-dolce-secondary bg-dolce-bg px-4 py-4 dark:border-white/10 dark:bg-[#1a120e] md:hidden">
           <div className="flex flex-col gap-3">
             {links.map((link) => (
               <Link
@@ -68,8 +76,8 @@ export default function Navbar({ phone }: { phone?: string }) {
                 onClick={() => setOpen(false)}
                 className={`rounded-lg px-3 py-2 text-sm font-medium ${
                   pathname === link.href
-                    ? "bg-dolce-secondary text-dolce-primary"
-                    : "text-dolce-text/80"
+                    ? "bg-dolce-secondary text-dolce-primary dark:bg-white/10 dark:text-dolce-accent"
+                    : "text-dolce-text/80 dark:text-white/80"
                 }`}
               >
                 {link.label}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
+import Providers from "./providers";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -26,11 +27,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <body
-        className={`${playfair.variable} ${inter.variable} min-h-screen bg-dolce-bg font-inter text-dolce-text antialiased`}
+        className={`${playfair.variable} ${inter.variable} min-h-screen bg-dolce-bg font-inter text-dolce-text antialiased dark:bg-[#1a120e] dark:text-dolce-secondary`}
       >
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

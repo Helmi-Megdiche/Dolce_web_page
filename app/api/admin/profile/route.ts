@@ -12,7 +12,17 @@ export async function PUT(req: NextRequest) {
     }
 
     await connectToDatabase();
-    const { oldPassword, newPassword } = await req.json();
+    let body: { oldPassword?: string; newPassword?: string };
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
+    const oldPassword =
+      typeof body.oldPassword === "string" ? body.oldPassword : "";
+    const newPassword =
+      typeof body.newPassword === "string" ? body.newPassword : "";
 
     if (!oldPassword || !newPassword) {
       return NextResponse.json(
@@ -24,6 +34,13 @@ export async function PUT(req: NextRequest) {
     if (newPassword.length < 6) {
       return NextResponse.json(
         { error: "New password must be at least 6 characters" },
+        { status: 400 }
+      );
+    }
+
+    if (oldPassword === newPassword) {
+      return NextResponse.json(
+        { error: "New password must be different from the current one" },
         { status: 400 }
       );
     }

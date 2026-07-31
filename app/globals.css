@@ -7,6 +7,11 @@
   --foreground: #2d1b12;
 }
 
+.dark {
+  --background: #1a120e;
+  --foreground: #f5e6d3;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
@@ -21,18 +26,120 @@ body {
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-dolce-primary px-6 py-3 font-medium text-white transition hover:bg-[#6f4a2f] focus:outline-none focus:ring-2 focus:ring-dolce-accent focus:ring-offset-2;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-dolce-primary px-6 py-3 font-medium text-white transition hover:bg-[#6f4a2f] focus:outline-none focus:ring-2 focus:ring-dolce-accent focus:ring-offset-2 dark:focus:ring-offset-[#1a120e];
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-dolce-primary bg-transparent px-6 py-3 font-medium text-dolce-primary transition hover:bg-dolce-secondary focus:outline-none focus:ring-2 focus:ring-dolce-accent focus:ring-offset-2;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-dolce-primary bg-transparent px-6 py-3 font-medium text-dolce-primary transition hover:bg-dolce-secondary focus:outline-none focus:ring-2 focus:ring-dolce-accent focus:ring-offset-2 dark:border-dolce-accent dark:text-dolce-secondary dark:hover:bg-white/10 dark:focus:ring-offset-[#1a120e];
   }
 
   .input-field {
-    @apply w-full rounded-xl border border-dolce-secondary bg-white px-4 py-3 text-dolce-text outline-none transition focus:border-dolce-accent focus:ring-2 focus:ring-dolce-accent/30;
+    @apply w-full rounded-xl border border-dolce-secondary bg-white px-4 py-3 text-dolce-text outline-none transition focus:border-dolce-accent focus:ring-2 focus:ring-dolce-accent/30 dark:border-white/15 dark:bg-[#241912] dark:text-dolce-secondary dark:placeholder:text-white/40;
+  }
+
+  .input-datetime {
+    @apply w-full min-h-[3.25rem] rounded-xl border border-dolce-secondary bg-white px-4 py-3 text-dolce-text outline-none transition focus:border-dolce-accent focus:ring-2 focus:ring-dolce-accent/30 dark:border-white/15 dark:bg-[#2a1f18] dark:text-dolce-secondary dark:placeholder:text-white/40 dark:[color-scheme:dark];
+  }
+
+  .input-datetime::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.7;
+    border-radius: 0.35rem;
+    padding: 0.15rem;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+  }
+
+  .input-datetime::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    background-color: rgba(212, 163, 115, 0.2);
+  }
+
+  .dark .input-datetime::-webkit-calendar-picker-indicator {
+    /* Tint the native icon toward cream / gold */
+    filter: invert(0.92) sepia(0.25) saturate(0.6) hue-rotate(5deg);
+    opacity: 0.9;
+  }
+
+  .input-datetime::-webkit-datetime-edit {
+    color: inherit;
+  }
+
+  .input-datetime::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+  }
+
+  .input-datetime::-webkit-datetime-edit-text {
+    color: #d4a373;
+    padding: 0 0.15rem;
+  }
+
+  .dark .input-datetime::-webkit-datetime-edit-text {
+    color: #d4a373;
+  }
+
+  .input-datetime::-webkit-datetime-edit-month-field,
+  .input-datetime::-webkit-datetime-edit-day-field,
+  .input-datetime::-webkit-datetime-edit-year-field,
+  .input-datetime::-webkit-datetime-edit-hour-field,
+  .input-datetime::-webkit-datetime-edit-minute-field,
+  .input-datetime::-webkit-datetime-edit-ampm-field {
+    border-radius: 0.25rem;
+    padding: 0.1rem 0.2rem;
+  }
+
+  .dark .input-datetime::-webkit-datetime-edit-month-field:focus,
+  .dark .input-datetime::-webkit-datetime-edit-day-field:focus,
+  .dark .input-datetime::-webkit-datetime-edit-year-field:focus,
+  .dark .input-datetime::-webkit-datetime-edit-hour-field:focus,
+  .dark .input-datetime::-webkit-datetime-edit-minute-field:focus,
+  .dark .input-datetime::-webkit-datetime-edit-ampm-field:focus {
+    background-color: rgba(212, 163, 115, 0.25);
+    color: #fff8f2;
+    outline: none;
   }
 
   .section-title {
-    @apply font-playfair text-3xl font-bold text-dolce-text md:text-4xl;
+    @apply font-playfair text-3xl font-bold text-dolce-text md:text-4xl dark:text-dolce-secondary;
+  }
+
+  /* Admin dashboard surfaces — keep readable contrast in dark mode */
+  .admin-card {
+    @apply rounded-xl bg-white text-dolce-text ring-1 ring-dolce-secondary/50 dark:bg-[#241912] dark:text-[#f5e6d3] dark:ring-white/10;
+  }
+
+  .admin-muted {
+    @apply text-sm text-dolce-text/65 dark:text-white/60;
+  }
+
+  .admin-label {
+    @apply mb-1.5 block text-sm font-medium text-dolce-text dark:text-[#f5e6d3];
+  }
+
+  .admin-table-wrap {
+    @apply overflow-x-auto rounded-xl bg-white text-dolce-text ring-1 ring-dolce-secondary/50 dark:bg-[#241912] dark:text-[#f5e6d3] dark:ring-white/10;
+  }
+
+  .admin-thead {
+    @apply border-b border-dolce-secondary bg-dolce-secondary/60 text-dolce-text dark:border-white/10 dark:bg-[#322418] dark:text-[#f5e6d3];
+  }
+
+  .admin-row {
+    @apply border-b border-dolce-secondary/40 dark:border-white/10;
+  }
+
+  .admin-icon-btn {
+    @apply rounded-lg p-1.5 text-dolce-text transition hover:bg-dolce-secondary dark:text-[#f5e6d3] dark:hover:bg-white/10;
+  }
+
+  .admin-alert-success {
+    @apply rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800 dark:bg-green-900/40 dark:text-green-300;
+  }
+
+  .admin-alert-error {
+    @apply rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/40 dark:text-red-300;
+  }
+
+  .admin-select {
+    @apply rounded-lg border border-dolce-secondary bg-white px-2 py-1.5 text-sm text-dolce-text outline-none dark:border-white/20 dark:bg-[#2a1f18] dark:text-[#f5e6d3] dark:[color-scheme:dark];
   }
 }

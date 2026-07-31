@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Reservation {
   _id: string;
@@ -15,9 +16,11 @@ interface Reservation {
   status: string;
 }
 
-const STATUSES = ["pending", "confirmed", "cancelled", "completed"];
+const STATUSES = ["pending", "confirmed", "cancelled", "completed"] as const;
 
 export default function ReservationsTab() {
+  const t = useTranslations("admin");
+  const tc = useTranslations("common");
   const [items, setItems] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,44 +46,57 @@ export default function ReservationsTab() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this reservation?")) return;
+    if (!confirm(t("deleteReservation"))) return;
     await fetch(`/api/reservations/${id}`, { method: "DELETE" });
     await load();
   }
 
-  if (loading) return <p className="text-dolce-text/60">Loading…</p>;
+  function statusLabel(status: string) {
+    const key = `statuses.${status}` as
+      | "statuses.pending"
+      | "statuses.confirmed"
+      | "statuses.cancelled"
+      | "statuses.completed";
+    try {
+      return t(key);
+    } catch {
+      return status;
+    }
+  }
+
+  if (loading) return <p className="admin-muted">{tc("loading")}</p>;
 
   return (
-    <div>
-      <p className="mb-4 text-sm text-dolce-text/60">
-        {items.length} reservation{items.length !== 1 ? "s" : ""}
+    <div className="text-dolce-text dark:text-[#f5e6d3]">
+      <p className="admin-muted mb-4">
+        {t("reservationsCount", { count: items.length })}
       </p>
 
       {items.length === 0 ? (
-        <p className="rounded-xl bg-white p-8 text-center text-dolce-text/60 ring-1 ring-dolce-secondary/50">
-          No reservations yet
+        <p className="admin-card p-8 text-center text-dolce-text/70 dark:text-white/60">
+          {t("noReservations")}
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-dolce-secondary/50">
+        <div className="admin-table-wrap">
           <table className="w-full min-w-[800px] text-left text-sm">
-            <thead className="border-b border-dolce-secondary bg-dolce-secondary/40">
+            <thead className="admin-thead">
               <tr>
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Phone</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Time</th>
-                <th className="px-4 py-3">Guests</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Actions</th>
+                <th className="px-4 py-3 font-semibold">{t("name")}</th>
+                <th className="px-4 py-3 font-semibold">{tc("phone")}</th>
+                <th className="px-4 py-3 font-semibold">{t("date")}</th>
+                <th className="px-4 py-3 font-semibold">{t("time")}</th>
+                <th className="px-4 py-3 font-semibold">{t("guests")}</th>
+                <th className="px-4 py-3 font-semibold">{t("status")}</th>
+                <th className="px-4 py-3 font-semibold">{t("actions")}</th>
               </tr>
             </thead>
             <tbody>
               {items.map((r) => (
-                <tr key={r._id} className="border-b border-dolce-secondary/40">
+                <tr key={r._id} className="admin-row">
                   <td className="px-4 py-3">
                     <div className="font-medium">{r.customerName}</div>
                     {r.specialRequests && (
-                      <div className="mt-0.5 text-xs text-dolce-text/50">
+                      <div className="mt-0.5 text-xs text-dolce-text/55 dark:text-white/45">
                         {r.specialRequests}
                       </div>
                     )}
@@ -91,13 +107,13 @@ export default function ReservationsTab() {
                   <td className="px-4 py-3">{r.numberOfPeople}</td>
                   <td className="px-4 py-3">
                     <select
-                      className="rounded-lg border border-dolce-secondary px-2 py-1.5 text-sm"
+                      className="admin-select"
                       value={r.status}
                       onChange={(e) => updateStatus(r._id, e.target.value)}
                     >
                       {STATUSES.map((s) => (
                         <option key={s} value={s}>
-                          {s}
+                          {statusLabel(s)}
                         </option>
                       ))}
                     </select>
@@ -106,7 +122,8 @@ export default function ReservationsTab() {
                     <button
                       type="button"
                       onClick={() => handleDelete(r._id)}
-                      className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"
+                      className="rounded-lg p-1.5 text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
+                      aria-label={tc("delete")}
                     >
                       <Trash2 size={16} />
                     </button>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { usePathname, useRouter } from "@/i18n/routing";
 import {
   UtensilsCrossed,
   Clock,
@@ -13,26 +13,41 @@ import {
   Menu as MenuIcon,
   X,
 } from "lucide-react";
+import Logo from "@/components/ui/Logo";
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
+import { tabIds, type TabId } from "@/lib/adminTabs";
 import MenuTab from "./MenuTab";
 import HoursTab from "./HoursTab";
 import ReservationsTab from "./ReservationsTab";
 import SettingsTab from "./SettingsTab";
 import ProfileTab from "./ProfileTab";
 
-const tabs = [
-  { id: "menu", label: "Menu", icon: UtensilsCrossed },
-  { id: "hours", label: "Hours", icon: Clock },
-  { id: "reservations", label: "Reservations", icon: CalendarDays },
-  { id: "settings", label: "Settings", icon: Settings },
-  { id: "profile", label: "Profile", icon: User },
-] as const;
+const icons = {
+  menu: UtensilsCrossed,
+  hours: Clock,
+  reservations: CalendarDays,
+  settings: Settings,
+  profile: User,
+};
 
-type TabId = (typeof tabs)[number]["id"];
-
-export default function DashboardClient({ adminEmail }: { adminEmail: string }) {
-  const [active, setActive] = useState<TabId>("menu");
+export default function DashboardClient({
+  adminEmail,
+  initialTab = "menu",
+}: {
+  adminEmail: string;
+  initialTab?: TabId;
+}) {
+  const [active, setActive] = useState<TabId>(initialTab);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const t = useTranslations("admin");
+
+  // Keep tab in sync after locale/searchParam navigations (and browser back/forward)
+  useEffect(() => {
+    setActive(initialTab);
+  }, [initialTab]);
 
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -43,10 +58,12 @@ export default function DashboardClient({ adminEmail }: { adminEmail: string }) 
   function selectTab(id: TabId) {
     setActive(id);
     setSidebarOpen(false);
+    const href = id === "menu" ? pathname : `${pathname}?tab=${id}`;
+    router.replace(href, { scroll: false });
   }
 
   return (
-    <div className="flex min-h-screen bg-dolce-bg">
+    <div className="flex min-h-screen bg-dolce-bg dark:bg-[#1a120e]">
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/40 lg:hidden"
@@ -55,14 +72,12 @@ export default function DashboardClient({ adminEmail }: { adminEmail: string }) 
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-dolce-text text-white transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-dolce-text text-white transition-transform dark:bg-[#120c09] lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-5">
-          <Link href="/" className="font-playfair text-2xl font-bold">
-            Dolce
-          </Link>
+          <Logo size="sm" href="/" />
           <button
             type="button"
             className="lg:hidden"
@@ -73,21 +88,24 @@ export default function DashboardClient({ adminEmail }: { adminEmail: string }) 
         </div>
 
         <nav className="flex-1 space-y-1 p-3">
-          {tabs.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => selectTab(id)}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
-                active === id
-                  ? "bg-dolce-primary text-white"
-                  : "text-white/70 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <Icon size={18} />
-              {label}
-            </button>
-          ))}
+          {tabIds.map((id) => {
+            const Icon = icons[id];
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => selectTab(id)}
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
+                  active === id
+                    ? "bg-dolce-primary text-white"
+                    : "text-white/70 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Icon size={18} />
+                {t(id)}
+              </button>
+            );
+          })}
         </nav>
 
         <div className="border-t border-white/10 p-3">
@@ -97,24 +115,31 @@ export default function DashboardClient({ adminEmail }: { adminEmail: string }) 
             className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
           >
             <LogOut size={18} />
-            Logout
+            {t("logout")}
           </button>
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-dolce-secondary bg-white px-4 py-4">
+      <div className="flex flex-1 flex-col text-dolce-text dark:text-[#f5e6d3]">
+        <header className="flex items-center gap-3 border-b border-dolce-secondary bg-white px-4 py-4 dark:border-white/10 dark:bg-[#241912]">
           <button
             type="button"
-            className="lg:hidden"
+            className="rounded-lg p-1 lg:hidden dark:hover:bg-white/10"
             onClick={() => setSidebarOpen(true)}
+            aria-label={t("openMenu")}
           >
             <MenuIcon size={22} />
           </button>
-          <h1 className="font-playfair text-xl font-semibold capitalize">
-            {active}
+          <h1 className="font-playfair text-xl font-semibold text-dolce-text dark:text-[#f5e6d3]">
+            {t(active)}
           </h1>
-          <span className="ml-auto text-sm text-dolce-text/50">{adminEmail}</span>
+          <div className="ml-auto flex items-center gap-2">
+            <LanguageSwitcher />
+            <ThemeToggle />
+            <span className="hidden text-sm text-dolce-text/60 dark:text-white/55 sm:inline">
+              {adminEmail}
+            </span>
+          </div>
         </header>
 
         <div className="flex-1 overflow-auto p-4 md:p-6">

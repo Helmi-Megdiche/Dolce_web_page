@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { Pencil, Trash2, Plus, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import ImageUploadField from "@/components/ui/ImageUploadField";
 
 interface MenuItem {
   _id: string;
@@ -14,7 +16,7 @@ interface MenuItem {
   displayOrder: number;
 }
 
-const CATEGORIES = ["Boxes", "Pancakes", "Bubble", "Crêpe", "Drinks"];
+const CATEGORIES = ["Boxes", "Pancakes", "Bubble", "Crêpe", "Drinks"] as const;
 
 const emptyForm = {
   name: "",
@@ -23,10 +25,11 @@ const emptyForm = {
   category: "Crêpe",
   imageUrl: "",
   isAvailable: true,
-  displayOrder: "0",
 };
 
 export default function MenuTab() {
+  const t = useTranslations("admin");
+  const tc = useTranslations("common");
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -47,6 +50,11 @@ export default function MenuTab() {
     load();
   }, []);
 
+  function nextOrder() {
+    if (items.length === 0) return 1;
+    return Math.max(...items.map((i) => i.displayOrder || 0)) + 1;
+  }
+
   function openCreate() {
     setEditing(null);
     setForm(emptyForm);
@@ -62,7 +70,6 @@ export default function MenuTab() {
       category: item.category,
       imageUrl: item.imageUrl || "",
       isAvailable: item.isAvailable,
-      displayOrder: String(item.displayOrder ?? 0),
     });
     setShowForm(true);
   }
@@ -79,7 +86,6 @@ export default function MenuTab() {
       category: form.category,
       imageUrl: form.imageUrl,
       isAvailable: form.isAvailable,
-      displayOrder: Number(form.displayOrder) || 0,
     };
 
     try {
@@ -93,68 +99,80 @@ export default function MenuTab() {
       );
       if (!res.ok) {
         const data = await res.json();
-        setMessage(data.error || "Save failed");
+        setMessage(data.error || t("saveFailed"));
         return;
       }
       setShowForm(false);
       await load();
     } catch {
-      setMessage("Save failed");
+      setMessage(t("saveFailed"));
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this menu item?")) return;
+    if (!confirm(t("deleteMenuItem"))) return;
     await fetch(`/api/menu/${id}`, { method: "DELETE" });
     await load();
   }
 
+  function categoryLabel(category: string) {
+    const key = `categories.${category}` as
+      | "categories.Boxes"
+      | "categories.Pancakes"
+      | "categories.Bubble"
+      | "categories.Crêpe"
+      | "categories.Drinks";
+    try {
+      return t(key);
+    } catch {
+      return category;
+    }
+  }
+
   return (
-    <div>
+    <div className="text-dolce-text dark:text-[#f5e6d3]">
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-dolce-text/60">{items.length} items</p>
+        <p className="admin-muted">{t("itemsCount", { count: items.length })}</p>
         <button type="button" onClick={openCreate} className="btn-primary text-sm">
-          <Plus size={16} /> Add item
+          <Plus size={16} /> {t("addItem")}
         </button>
       </div>
 
-      {message && (
-        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          {message}
-        </p>
-      )}
+      {message && <p className="admin-alert-error mb-4">{message}</p>}
 
       {loading ? (
-        <p className="text-dolce-text/60">Loading…</p>
+        <p className="admin-muted">{tc("loading")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-dolce-secondary/50">
+        <div className="admin-table-wrap">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="border-b border-dolce-secondary bg-dolce-secondary/40">
+            <thead className="admin-thead">
               <tr>
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Price</th>
-                <th className="px-4 py-3">Order</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Actions</th>
+                <th className="px-4 py-3 font-semibold">{t("name")}</th>
+                <th className="px-4 py-3 font-semibold">{t("category")}</th>
+                <th className="px-4 py-3 font-semibold">{t("price")}</th>
+                <th className="px-4 py-3 font-semibold">{t("order")}</th>
+                <th className="px-4 py-3 font-semibold">{t("status")}</th>
+                <th className="px-4 py-3 font-semibold">{t("actions")}</th>
               </tr>
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr key={item._id} className="border-b border-dolce-secondary/40">
+                <tr key={item._id} className="admin-row">
                   <td className="px-4 py-3 font-medium">{item.name}</td>
-                  <td className="px-4 py-3">{item.category}</td>
+                  <td className="px-4 py-3">{categoryLabel(item.category)}</td>
                   <td className="px-4 py-3">{item.price} DT</td>
                   <td className="px-4 py-3">{item.displayOrder}</td>
                   <td className="px-4 py-3">
                     <span
                       className={
-                        item.isAvailable ? "text-green-700" : "text-red-600"
+                        item.isAvailable
+                          ? "font-medium text-green-700 dark:text-green-400"
+                          : "font-medium text-red-600 dark:text-red-400"
                       }
                     >
-                      {item.isAvailable ? "Available" : "Hidden"}
+                      {item.isAvailable ? t("available") : t("hidden")}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -162,14 +180,16 @@ export default function MenuTab() {
                       <button
                         type="button"
                         onClick={() => openEdit(item)}
-                        className="rounded-lg p-1.5 hover:bg-dolce-secondary"
+                        className="admin-icon-btn"
+                        aria-label={tc("edit")}
                       >
                         <Pencil size={16} />
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDelete(item._id)}
-                        className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"
+                        className="rounded-lg p-1.5 text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
+                        aria-label={tc("delete")}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -183,27 +203,31 @@ export default function MenuTab() {
       )}
 
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-[1px]">
+          <div className="admin-card max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-playfair text-xl font-semibold">
-                {editing ? "Edit item" : "New item"}
+                {editing ? t("editItem") : t("newItem")}
               </h2>
-              <button type="button" onClick={() => setShowForm(false)}>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="admin-icon-btn"
+              >
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-3">
               <input
                 className="input-field"
-                placeholder="Name"
+                placeholder={t("name")}
                 required
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
               <textarea
                 className="input-field resize-none"
-                placeholder="Description"
+                placeholder={t("description")}
                 rows={2}
                 value={form.description}
                 onChange={(e) =>
@@ -215,7 +239,7 @@ export default function MenuTab() {
                   className="input-field"
                   type="number"
                   step="0.1"
-                  placeholder="Price"
+                  placeholder={t("price")}
                   required
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
@@ -229,26 +253,21 @@ export default function MenuTab() {
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c} value={c}>
-                      {c}
+                      {categoryLabel(c)}
                     </option>
                   ))}
                 </select>
               </div>
-              <input
-                className="input-field"
-                placeholder="Image URL"
+              <ImageUploadField
                 value={form.imageUrl}
-                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                disabled={saving}
+                onChange={(imageUrl) => setForm({ ...form, imageUrl })}
               />
-              <input
-                className="input-field"
-                type="number"
-                placeholder="Display order"
-                value={form.displayOrder}
-                onChange={(e) =>
-                  setForm({ ...form, displayOrder: e.target.value })
-                }
-              />
+              <p className="rounded-xl border border-dolce-secondary/60 bg-dolce-secondary/30 px-4 py-3 text-sm text-dolce-text/80 dark:border-white/10 dark:bg-white/5 dark:text-white/70">
+                {t("displayOrderAuto", {
+                  order: editing ? editing.displayOrder : nextOrder(),
+                })}
+              </p>
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -257,10 +276,10 @@ export default function MenuTab() {
                     setForm({ ...form, isAvailable: e.target.checked })
                   }
                 />
-                Available
+                {t("available")}
               </label>
               <button type="submit" disabled={saving} className="btn-primary w-full">
-                {saving ? "Saving…" : "Save"}
+                {saving ? tc("saving") : tc("save")}
               </button>
             </form>
           </div>
