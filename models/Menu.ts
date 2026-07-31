@@ -22,7 +22,8 @@ const MenuSchema = new Schema<IMenu>(
       required: true,
       enum: ["Boxes", "Pancakes", "Bubble", "Crêpe", "Drinks"],
     },
-    imageUrl: { type: String, default: "" },
+    // Full cloud URL from Uploadthing (no maxlength — URLs can be long)
+    imageUrl: { type: String, default: "", trim: true },
     isAvailable: { type: Boolean, default: true },
     displayOrder: { type: Number, default: 0 },
   },

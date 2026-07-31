@@ -17,6 +17,7 @@ export default function Navbar({ phone }: { phone?: string }) {
     { href: "/", label: t("home") },
     { href: "/menu", label: t("menu") },
     { href: "/reservation", label: t("reservation") },
+    { href: "/reclamation", label: t("reclamation") },
     { href: "/about", label: t("about") },
   ] as const;
 

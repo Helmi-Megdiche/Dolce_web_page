@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { getAdminFromRequest } from "@/lib/auth";
+import { getAppUrl, sendEmail } from "@/lib/email";
+import { sendWhatsAppAlert } from "@/lib/whatsapp";
 import Reservation from "@/models/Reservation";
 
 function corsHeaders() {
@@ -9,6 +11,77 @@ function corsHeaders() {
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+async function notifyAdminsOfReservation(payload: {
+  customerName: string;
+  phone: string;
+  email: string;
+  reservationDate: string;
+  reservationTime: string;
+  numberOfPeople: number;
+  specialRequests: string;
+}) {
+  const appUrl = getAppUrl();
+  const adminUrl = `${appUrl}/fr/admin/dashboard?tab=reservations`;
+  const adminEmail = (process.env.ADMIN_EMAIL || "").trim();
+
+  const details = [
+    `Nom: ${payload.customerName}`,
+    `Tél: ${payload.phone}`,
+    payload.email && `Email: ${payload.email}`,
+    `Date: ${payload.reservationDate}`,
+    `Heure: ${payload.reservationTime}`,
+    `Personnes: ${payload.numberOfPeople}`,
+    payload.specialRequests && `Demandes: ${payload.specialRequests}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  if (adminEmail) {
+    try {
+      await sendEmail({
+        to: adminEmail,
+        subject: "Nouvelle réservation Dolce.tn",
+        text: [
+          "Nouvelle réservation reçue sur Dolce.tn",
+          "",
+          details,
+          "",
+          `Admin: ${adminUrl}`,
+        ].join("\n"),
+        html: `
+          <div style="font-family:Arial,sans-serif;line-height:1.5;color:#2D1B12">
+            <h2 style="margin:0 0 12px">Nouvelle réservation Dolce.tn</h2>
+            <p style="margin:0;padding:12px;background:#FFF8F2;border-radius:8px;white-space:pre-line">${escapeHtml(
+              details
+            )}</p>
+            <p style="margin:20px 0 0">
+              <a href="${adminUrl}" style="color:#8B5E3C">Ouvrir dans l'admin</a>
+            </p>
+          </div>
+        `,
+      });
+    } catch (error) {
+      console.error("[reservations] Email notify failed:", error);
+    }
+  } else {
+    console.warn("[reservations] ADMIN_EMAIL not set — skipping email alert.");
+  }
+
+  const whatsappBody = [
+    "Dolce - Nouvelle réservation ! 🍽️",
+    "",
+    details,
+    "",
+    `Admin: ${adminUrl}`,
+  ].join("\n");
+
+  await sendWhatsAppAlert(whatsappBody);
 }
 
 export async function OPTIONS() {
@@ -119,6 +192,20 @@ export async function POST(req: NextRequest) {
       specialRequests,
       status: "pending",
     });
+
+    try {
+      await notifyAdminsOfReservation({
+        customerName,
+        phone,
+        email,
+        reservationDate,
+        reservationTime,
+        numberOfPeople: guests,
+        specialRequests,
+      });
+    } catch (error) {
+      console.error("[reservations] notifyAdmins unexpected error:", error);
+    }
 
     return NextResponse.json(
       { success: true, reservation },

@@ -28,9 +28,8 @@ yarn-error.log*
 # local env files
 .env*.local
 
-# uploaded menu images (keep folder)
-/public/uploads/menu/*
-!/public/uploads/menu/.gitkeep
+# legacy local uploads (now using Uploadthing)
+/public/uploads/
 
 # vercel
 .vercel

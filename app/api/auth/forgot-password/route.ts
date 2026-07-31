@@ -3,8 +3,11 @@ import crypto from "crypto";
 import { connectToDatabase } from "@/lib/mongodb";
 import Admin from "@/models/Admin";
 import { sendEmail, getAppUrl } from "@/lib/email";
+import { isWhatsAppConfigured, sendWhatsAppMessage } from "@/lib/whatsapp";
 
 const isDev = process.env.NODE_ENV !== "production";
+
+type ResetMethod = "email" | "whatsapp";
 
 function buildResetEmail(resetUrl: string, toEmail: string) {
   const subject = "Your Dolce admin password reset";
@@ -67,14 +70,41 @@ function buildResetEmail(resetUrl: string, toEmail: string) {
   return { subject, text, html };
 }
 
+function buildWhatsAppResetMessage(resetUrl: string, toEmail: string) {
+  return [
+    "Dolce — Réinitialisation du mot de passe 🔐",
+    "",
+    `Compte: ${toEmail}`,
+    "",
+    "Ouvrez ce lien pour choisir un nouveau mot de passe (valide 1 heure):",
+    resetUrl,
+    "",
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
+  ].join("\n");
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => null);
     const email =
       typeof body?.email === "string" ? body.email.toLowerCase().trim() : "";
+    const method: ResetMethod =
+      body?.method === "whatsapp" ? "whatsapp" : "email";
+    const locale =
+      typeof body?.locale === "string" && body.locale === "en" ? "en" : "fr";
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
+
+    if (method === "whatsapp" && !isWhatsAppConfigured()) {
+      return NextResponse.json(
+        {
+          error:
+            "WhatsApp reset is not configured. Please use email, or set UltraMsg env vars.",
+        },
+        { status: 503 }
+      );
     }
 
     await connectToDatabase();
@@ -90,9 +120,14 @@ export async function POST(req: NextRequest) {
           { status: 404 }
         );
       }
+      // Avoid account enumeration in production
       return NextResponse.json({
         success: true,
-        message: "If an account exists, a reset email was sent.",
+        method,
+        message:
+          method === "whatsapp"
+            ? "If an account exists, a WhatsApp message was sent."
+            : "If an account exists, a reset email was sent.",
       });
     }
 
@@ -104,7 +139,30 @@ export async function POST(req: NextRequest) {
     await admin.save();
 
     const appUrl = getAppUrl();
-    const resetUrl = `${appUrl}/fr/admin/reset-password?token=${token}`;
+    const resetUrl = `${appUrl}/${locale}/admin/reset-password?token=${token}`;
+
+    if (method === "whatsapp") {
+      const sent = await sendWhatsAppMessage(
+        buildWhatsAppResetMessage(resetUrl, admin.email)
+      );
+      if (!sent) {
+        return NextResponse.json(
+          {
+            error: isDev
+              ? "WhatsApp send failed. Check UltraMsg credentials and that the number is whitelisted."
+              : "Unable to send WhatsApp message. Please try email instead.",
+          },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        method: "whatsapp",
+        message: "If an account exists, a WhatsApp message was sent.",
+      });
+    }
+
     const mail = buildResetEmail(resetUrl, admin.email);
 
     try {
@@ -115,7 +173,7 @@ export async function POST(req: NextRequest) {
         text: mail.text,
       });
     } catch (mailError) {
-      console.error("[forgot-password] send failed:", mailError);
+      console.error("[forgot-password] email send failed:", mailError);
       const detail =
         mailError instanceof Error ? mailError.message : "Email send failed";
       return NextResponse.json(
@@ -130,9 +188,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      method: "email",
       message: "If an account exists, a reset email was sent.",
     });
-
   } catch (error) {
     console.error("forgot-password error:", error);
     return NextResponse.json(

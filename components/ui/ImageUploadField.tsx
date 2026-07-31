@@ -1,14 +1,9 @@
 "use client";
 
-import {
-  ChangeEvent,
-  DragEvent,
-  KeyboardEvent,
-  useRef,
-  useState,
-} from "react";
-import { ImagePlus, Link2, Loader2, Trash2, Upload } from "lucide-react";
+import { useState } from "react";
+import { ImagePlus, Link2, Loader2, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { UploadDropzone } from "@/lib/uploadthing";
 
 type ImageUploadFieldProps = {
   value: string;
@@ -16,73 +11,25 @@ type ImageUploadFieldProps = {
   disabled?: boolean;
 };
 
+function fileUrl(
+  file: { ufsUrl?: string; url?: string; appUrl?: string }
+): string {
+  return file.ufsUrl || file.url || file.appUrl || "";
+}
+
 export default function ImageUploadField({
   value,
   onChange,
   disabled = false,
 }: ImageUploadFieldProps) {
   const t = useTranslations("admin");
-  const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
-  const [dragging, setDragging] = useState(false);
   const [showUrl, setShowUrl] = useState(false);
-
-  async function uploadFile(file: File) {
-    if (disabled || uploading) return;
-
-    setError("");
-    setUploading(true);
-
-    try {
-      const body = new FormData();
-      body.append("file", file);
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body,
-      });
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setError(data.error || t("imageUploadFailed"));
-        return;
-      }
-
-      onChange(data.url as string);
-      setShowUrl(false);
-    } catch {
-      setError(t("imageUploadFailed"));
-    } finally {
-      setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
-    }
-  }
-
-  function onFileChange(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) void uploadFile(file);
-  }
-
-  function onDrop(e: DragEvent<HTMLDivElement>) {
-    e.preventDefault();
-    setDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) void uploadFile(file);
-  }
 
   return (
     <div className="space-y-2">
       <p className="admin-label mb-0">{t("image")}</p>
-
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
-        className="hidden"
-        disabled={disabled || uploading}
-        onChange={onFileChange}
-      />
 
       {value ? (
         <div className="overflow-hidden rounded-2xl border border-dolce-secondary/70 bg-dolce-secondary/20 dark:border-white/10 dark:bg-[#2a1f18]">
@@ -99,16 +46,47 @@ export default function ImageUploadField({
               </div>
             )}
           </div>
-          <div className="flex flex-wrap gap-2 p-3">
-            <button
-              type="button"
-              disabled={disabled || uploading}
-              onClick={() => inputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 rounded-full bg-dolce-primary px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#6f4a2f] disabled:opacity-50 dark:bg-dolce-accent dark:text-dolce-text dark:hover:bg-[#c4925f]"
-            >
-              <Upload size={13} />
-              {t("changeImage")}
-            </button>
+          <div className="flex flex-wrap items-center gap-2 p-3">
+            <div className={disabled ? "pointer-events-none opacity-50" : ""}>
+              <UploadDropzone
+                endpoint="imageUploader"
+                config={{ mode: "auto" }}
+                appearance={{
+                  container:
+                    "!mt-0 !min-h-0 !w-auto !border-0 !bg-transparent !p-0 !shadow-none",
+                  uploadIcon: "hidden",
+                  label: "hidden",
+                  allowedContent: "hidden",
+                  button:
+                    "ut-ready:bg-dolce-primary ut-ready:text-white ut-uploading:cursor-not-allowed ut-uploading:bg-dolce-primary/70 after:bg-dolce-accent m-0 rounded-full bg-dolce-primary px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#6f4a2f] dark:bg-dolce-accent dark:text-dolce-text dark:hover:bg-[#c4925f]",
+                }}
+                content={{
+                  button({ ready, isUploading }) {
+                    if (isUploading) return t("imageUploading");
+                    if (ready) return t("changeImage");
+                    return t("imageUploading");
+                  },
+                }}
+                onUploadBegin={() => {
+                  setError("");
+                  setUploading(true);
+                }}
+                onClientUploadComplete={(res) => {
+                  setUploading(false);
+                  const url = res?.[0] ? fileUrl(res[0]) : "";
+                  if (url) {
+                    onChange(url);
+                    setShowUrl(false);
+                  } else {
+                    setError(t("imageUploadFailed"));
+                  }
+                }}
+                onUploadError={(err) => {
+                  setUploading(false);
+                  setError(err.message || t("imageUploadFailed"));
+                }}
+              />
+            </div>
             <button
               type="button"
               disabled={disabled || uploading}
@@ -125,47 +103,65 @@ export default function ImageUploadField({
         </div>
       ) : (
         <div
-          role="button"
-          tabIndex={0}
-          onClick={() => !disabled && !uploading && inputRef.current?.click()}
-          onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              if (!disabled && !uploading) inputRef.current?.click();
-            }
-          }}
-          onDragEnter={(e) => {
-            e.preventDefault();
-            setDragging(true);
-          }}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragging(true);
-          }}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            setDragging(false);
-          }}
-          onDrop={onDrop}
-          className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-4 py-8 text-center transition ${
-            dragging
-              ? "border-dolce-accent bg-dolce-accent/10"
-              : "border-dolce-secondary/80 bg-dolce-secondary/20 hover:border-dolce-accent hover:bg-dolce-secondary/40 dark:border-white/15 dark:bg-[#2a1f18] dark:hover:border-dolce-accent dark:hover:bg-white/5"
-          } ${disabled || uploading ? "pointer-events-none opacity-60" : ""}`}
+          className={`rounded-2xl border-2 border-dashed border-dolce-secondary/80 bg-dolce-secondary/20 p-2 transition dark:border-white/15 dark:bg-[#2a1f18] ${
+            disabled ? "pointer-events-none opacity-60" : ""
+          }`}
         >
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-dolce-primary/15 text-dolce-primary dark:bg-dolce-accent/20 dark:text-dolce-accent">
-            {uploading ? (
-              <Loader2 size={22} className="animate-spin" />
-            ) : (
-              <ImagePlus size={22} />
-            )}
+          <div className="mb-1 flex flex-col items-center pt-4 text-center">
+            <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-dolce-primary/15 text-dolce-primary dark:bg-dolce-accent/20 dark:text-dolce-accent">
+              {uploading ? (
+                <Loader2 size={22} className="animate-spin" />
+              ) : (
+                <ImagePlus size={22} />
+              )}
+            </div>
           </div>
-          <p className="text-sm font-medium text-dolce-text dark:text-[#f5e6d3]">
-            {uploading ? t("imageUploading") : t("imageDropHint")}
-          </p>
-          <p className="mt-1 text-xs text-dolce-text/50 dark:text-white/40">
-            {t("imageFormatsHint")}
-          </p>
+          <UploadDropzone
+            endpoint="imageUploader"
+            config={{ mode: "auto" }}
+            appearance={{
+              container:
+                "!mt-0 min-h-[8rem] w-full border-0 bg-transparent p-2 shadow-none",
+              uploadIcon: "hidden",
+              label:
+                "text-sm font-medium text-dolce-text dark:text-[#f5e6d3]",
+              allowedContent:
+                "text-xs text-dolce-text/50 dark:text-white/40",
+              button:
+                "ut-ready:bg-dolce-primary ut-ready:text-white ut-uploading:cursor-not-allowed ut-uploading:bg-dolce-primary/70 after:bg-dolce-accent rounded-full bg-dolce-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#6f4a2f] dark:bg-dolce-accent dark:text-dolce-text dark:hover:bg-[#c4925f]",
+            }}
+            content={{
+              label({ ready, isUploading }) {
+                if (isUploading) return t("imageUploading");
+                if (ready) return t("imageDropHint");
+                return t("imageUploading");
+              },
+              allowedContent: t("imageFormatsHint"),
+              button({ ready, isUploading }) {
+                if (isUploading) return t("imageUploading");
+                if (ready) return t("changeImage");
+                return t("imageUploading");
+              },
+            }}
+            onUploadBegin={() => {
+              setError("");
+              setUploading(true);
+            }}
+            onClientUploadComplete={(res) => {
+              setUploading(false);
+              const url = res?.[0] ? fileUrl(res[0]) : "";
+              if (url) {
+                onChange(url);
+                setShowUrl(false);
+              } else {
+                setError(t("imageUploadFailed"));
+              }
+            }}
+            onUploadError={(err) => {
+              setUploading(false);
+              setError(err.message || t("imageUploadFailed"));
+            }}
+          />
         </div>
       )}
 

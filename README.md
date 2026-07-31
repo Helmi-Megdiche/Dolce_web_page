@@ -5,23 +5,31 @@ Dynamic website for **Dolce** crêperie (Ariana, Tunisia), built with Next.js 14
 ## Features
 
 ### Public site
-- **Home, Menu, Reservation, About** — all content loaded from MongoDB
+- **Home, Menu, Reservation, About, Feedback (Réclamation)** — content from MongoDB
 - **French / English** — `next-intl` with locale routes (`/fr/...`, `/en/...`)
 - **Light / dark theme** — `next-themes` with a Dolce warm palette
-- **Reservation form** — phone digits-only, custom email validation, time slots (no native browser tooltips)
+- **Reservation form** — phone digits-only, custom email validation, time slots
+- **Reclamation / feedback form** — anonymous by default; optional contact details
 - Brand logo, expressive typography (Playfair Display + Inter)
 
-### Admin dashboard (`/[locale]/admin/...`)
+### Admin dashboard (`/[locale]/admin/dashboard?tab=...`)
 - **Login** with JWT in an HTTP-only cookie + bcrypt passwords
-- **Forgot / reset password** via Gmail SMTP (nodemailer)
-- **Menu** — create, edit, delete items; auto display order; image upload from device (or paste URL)
-- **Hours** — per-day schedule with 15‑min selects, open/closed toggles, copy Monday → weekdays / apply to all
+- **Forgot / reset password** — choose **Email** or **WhatsApp** for the reset link
+- **Menu** — create, edit, delete; auto display order; **Uploadthing** cloud image upload
+- **Hours** — per-day schedule, open/closed toggles, copy Monday → weekdays / apply to all
 - **Reservations** — list and update status
+- **Feedback (Réclamations)** — view messages; mark resolved / dismiss
 - **Settings** — hero text, contact, social links
-- **Profile** — change own password; create / remove other admin accounts
+- **Profile** — change password; create / remove other admin accounts
 - Password **visibility toggles** on every password field
-- Active tab kept in the URL (`?tab=...`) so language/theme changes stay on the same section
-- Admin UI tuned for dark-mode contrast
+- Active tab kept in the URL so language/theme changes stay on the same section
+
+### Notifications (Email + WhatsApp)
+On new **reservation** or **reclamation**, the admin receives:
+- an **email** (nodemailer / Gmail) to `ADMIN_EMAIL`
+- a **WhatsApp** message (UltraMsg) to `WHATSAPP_ADMIN_NUMBER`
+
+Password reset can also be delivered by WhatsApp using the same UltraMsg setup.
 
 ## Tech stack
 
@@ -33,6 +41,8 @@ Dynamic website for **Dolce** crêperie (Ariana, Tunisia), built with Next.js 14
 | i18n | next-intl (FR / EN) |
 | Theme | next-themes |
 | Email | nodemailer (Gmail App Password) |
+| WhatsApp | UltraMsg API |
+| Image uploads | Uploadthing (cloud) |
 | Styling | Tailwind CSS |
 | Icons | Lucide React |
 | Fonts | Playfair Display + Inter |
@@ -56,7 +66,7 @@ JWT_SECRET=your_super_secret_key_change_this
 ADMIN_EMAIL=admin@dolce.tn
 ADMIN_PASSWORD=admin123
 
-# Used in password-reset emails
+# Used in emails / reset & admin deep links
 APP_URL=http://localhost:3000
 
 # Gmail SMTP — no spaces around =
@@ -66,6 +76,16 @@ EMAIL_USER=your@gmail.com
 EMAIL_PASS=your_16_char_app_password
 EMAIL_SERVICE=gmail
 EMAIL_FROM=Dolce <your@gmail.com>
+
+# Uploadthing — https://uploadthing.com/dashboard
+UPLOADTHING_TOKEN=your_uploadthing_token
+
+# UltraMsg WhatsApp — https://ultramsg.com/
+# WHATSAPP_ADMIN_NUMBER = country code + number, no + (e.g. 216XXXXXXXX)
+ULTRA_MSG_INSTANCE_ID=
+ULTRA_MSG_API_TOKEN=
+ULTRA_MSG_BASE_URL=
+WHATSAPP_ADMIN_NUMBER=
 ```
 
 For production (MongoDB Atlas), use your remote connection string and set `APP_URL` to the live domain.
@@ -87,6 +107,7 @@ npm run dev
 - Site (FR): http://localhost:3000/fr  
 - Site (EN): http://localhost:3000/en  
 - Admin login: http://localhost:3000/fr/admin/login  
+- Feedback: http://localhost:3000/fr/reclamation  
 
 Default credentials (after seed): `admin@dolce.tn` / `admin123`
 
@@ -94,13 +115,12 @@ Default credentials (after seed): `admin@dolce.tn` / `admin123`
 
 | Tab | What you can do |
 |-----|-----------------|
-| Menu | Manage items, categories, prices, availability; upload images |
+| Menu | Manage items, categories, prices, availability; upload images (Uploadthing) |
 | Hours | Edit weekly opening hours |
 | Reservations | View bookings and change status |
+| Feedback | View reclamations; mark resolved / dismiss |
 | Settings | Edit public site content & social links |
 | Profile | Change password; add/remove admin accounts |
-
-Uploaded menu images are stored under `public/uploads/menu/` and served as `/uploads/menu/...`.
 
 ## API routes (main)
 
@@ -110,14 +130,17 @@ Uploaded menu images are stored under `public/uploads/menu/` and served as `/upl
 | POST | `/api/admin/logout` | Logout |
 | GET/PUT | `/api/admin/profile` | Current admin / change password |
 | GET/POST/DELETE | `/api/admin/accounts` | List / create / delete admins |
-| POST | `/api/auth/forgot-password` | Send reset email |
+| POST | `/api/auth/forgot-password` | Reset link via email or WhatsApp |
 | POST | `/api/auth/reset-password` | Reset with token |
 | GET/POST | `/api/menu` | List / create menu items |
 | PUT/DELETE | `/api/menu/[id]` | Update / delete item |
-| POST | `/api/upload` | Upload menu image (auth required) |
+| GET/POST | `/api/uploadthing` | Uploadthing menu images (admin JWT) |
 | GET/PUT | `/api/hours` | Opening hours |
-| GET/POST | `/api/reservations` | Public create + admin list |
+| GET/POST | `/api/reservations` | Public create (+ notify) / admin list |
 | PUT/DELETE | `/api/reservations/[id]` | Update status / delete |
+| POST | `/api/reclamations` | Public feedback submit (+ notify) |
+| GET | `/api/admin/reclamations` | Admin list feedback |
+| PUT | `/api/admin/reclamations/[id]` | Update feedback status |
 | GET/PUT | `/api/settings` | Site settings |
 
 ## Project structure
@@ -125,22 +148,19 @@ Uploaded menu images are stored under `public/uploads/menu/` and served as `/upl
 ```
 app/
   [locale]/
-    (public)/           # Home, Menu, Reservation, About
+    (public)/           # Home, Menu, Reservation, Reclamation, About
     admin/              # Login, forgot/reset password, dashboard
-  api/                  # REST API routes
+  api/                  # REST API routes (incl. uploadthing, reclamations)
   providers.tsx         # Theme provider
 components/
-  admin/                # Dashboard tabs (Menu, Hours, …)
+  admin/                # Dashboard tabs (Menu, Hours, Reclamations, …)
   ui/                   # Logo, LanguageSwitcher, ThemeToggle,
                         # PasswordInput, ImageUploadField, …
-lib/                    # MongoDB, auth, validation, email, tabs helper
+lib/                    # MongoDB, auth, validation, email, whatsapp, uploadthing
 messages/               # en.json, fr.json
-models/                 # Mongoose schemas
-public/
-  images/               # Brand assets (e.g. dolce-logo.png)
-  uploads/menu/         # Uploaded menu images (gitignored)
-scripts/
-  seed.ts               # DB seed
+models/                 # Mongoose schemas (incl. Reclamation)
+public/images/          # Brand assets
+scripts/seed.ts         # DB seed
 i18n/                   # next-intl routing & request config
 ```
 
@@ -148,11 +168,11 @@ i18n/                   # next-intl routing & request config
 
 1. Push this repo to GitHub  
 2. Import the project in [Vercel](https://vercel.com)  
-3. Set environment variables from `.env.example` (`MONGODB_URI`, `JWT_SECRET`, `APP_URL`, email vars, etc.)  
+3. Set all variables from `.env.example` (`MONGODB_URI`, `JWT_SECRET`, `APP_URL`, email, `UPLOADTHING_TOKEN`, UltraMsg, etc.)  
 4. Deploy  
 5. Run the seed script once against your production DB (locally with the Atlas URI)  
 
-**Note:** File uploads write to the local filesystem (`public/uploads`). On Vercel’s ephemeral filesystem this is fine for demos; for production you may want object storage (S3, Cloudinary, etc.).
+Menu images use Uploadthing (not the local filesystem), so they work on Vercel’s ephemeral disk.
 
 ## Scripts
 

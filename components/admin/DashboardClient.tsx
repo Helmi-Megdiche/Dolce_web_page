@@ -7,6 +7,7 @@ import {
   UtensilsCrossed,
   Clock,
   CalendarDays,
+  MessageSquareWarning,
   Settings,
   User,
   LogOut,
@@ -20,6 +21,7 @@ import { tabIds, type TabId } from "@/lib/adminTabs";
 import MenuTab from "./MenuTab";
 import HoursTab from "./HoursTab";
 import ReservationsTab from "./ReservationsTab";
+import ReclamationsTab from "./ReclamationsTab";
 import SettingsTab from "./SettingsTab";
 import ProfileTab from "./ProfileTab";
 
@@ -27,6 +29,7 @@ const icons = {
   menu: UtensilsCrossed,
   hours: Clock,
   reservations: CalendarDays,
+  reclamations: MessageSquareWarning,
   settings: Settings,
   profile: User,
 };
@@ -146,6 +149,7 @@ export default function DashboardClient({
           {active === "menu" && <MenuTab />}
           {active === "hours" && <HoursTab />}
           {active === "reservations" && <ReservationsTab />}
+          {active === "reclamations" && <ReclamationsTab />}
           {active === "settings" && <SettingsTab />}
           {active === "profile" && <ProfileTab email={adminEmail} />}
         </div>

@@ -2,6 +2,7 @@ export const tabIds = [
   "menu",
   "hours",
   "reservations",
+  "reclamations",
   "settings",
   "profile",
 ] as const;
