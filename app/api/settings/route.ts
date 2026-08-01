@@ -3,6 +3,10 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { getAdminFromRequest } from "@/lib/auth";
 import SiteSetting from "@/models/SiteSetting";
 
+// Prevent Vercel from statically prerendering this route (GET-only cache → PUT 405)
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 const DEFAULT_SETTINGS: Record<string, string> = {
   hero_title: "Dolce",
   hero_subtitle: "Exploring the sweet side of life with Dolce",
