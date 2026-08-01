@@ -16,9 +16,17 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Dolce — Crêperie à Ariana",
+  title: {
+    template: "%s | Dolce",
+    default: "Dolce — Crêperie à Ariana",
+  },
   description:
     "Exploring the sweet side of life with Dolce. Crêpes, pancakes, bubble waffles et plus à Ariana, Tunisie.",
+  icons: {
+    icon: [{ url: "/images/dolce-logo.png", type: "image/png" }],
+    apple: [{ url: "/images/dolce-logo.png", type: "image/png" }],
+    shortcut: "/images/dolce-logo.png",
+  },
 };
 
 export default function RootLayout({
